@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memoria de emojis</title>
+<style>
+:root{--bg:#0d1512;--panel:#14211c;--ink:#d8f3e4;--muted:#7fa393;--line:#25392f;--card:#1b3a2f;--face:#eafbf1;--ok:#2f7d5b;--bad:#c9564a;--accent:#5de0a0;--amber:#f0b955;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#eef4f0;--panel:#fff;--ink:#14211c;--muted:#52695d;--line:#c8d8cf;--card:#1f5a45;--face:#fff;--ok:#bfe8d3;--accent:#14805a;--amber:#a86a00}}
+:root[data-theme="light"]{--bg:#eef4f0;--panel:#fff;--ink:#14211c;--muted:#52695d;--line:#c8d8cf;--card:#1f5a45;--face:#fff;--ok:#bfe8d3;--accent:#14805a;--amber:#a86a00}
+*{box-sizing:border-box}
+html{color-scheme:light dark;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Courier New",Consolas,monospace;padding:18px 14px 40px;display:flex;flex-direction:column;align-items:center}
+.wrap{width:100%;max-width:460px}
+h1{margin:0 0 12px;font-size:2.2rem;text-align:center}
+.bar{display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:10px}
+input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:1rem}
+.lvl{font-size:1.5rem;padding:6px 12px;border-radius:10px;border:2px solid var(--line);background:var(--panel);cursor:pointer;transition:transform .2s,border-color .2s}
+.lvl.on{border-color:var(--accent);transform:scale(1.08)}
+.hud{display:flex;justify-content:space-around;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;font-size:1.3rem;margin-bottom:8px}
+.prog{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:12px}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .4s}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.card{aspect-ratio:1;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:2.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s,border-color .2s}
+.card::before{content:"❓";font-size:1.6rem;opacity:.7}
+.card span{display:none}
+.card.open,.card.done,.card.fail{background:var(--face)}
+.card.open::before,.card.done::before,.card.fail::before{display:none}
+.card.open span,.card.done span,.card.fail span{display:block}
+.card.done{background:var(--ok);cursor:default}
+.card.fail{background:var(--bad)}
+.card:not(.open):not(.done):hover{transform:translateY(-4px) scale(1.05);border-color:var(--accent)}
+.card:not(.done):active{transform:scale(.94)}
+.card:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.card.in{animation:enter .5s cubic-bezier(.2,.9,.3,1.2) backwards}
+.card.open{animation:flipIn .35s ease}
+.card.done{animation:pop .5s ease}
+.card.fail{animation:shake .4s ease}
+@keyframes enter{from{opacity:0;transform:translateY(24px) scale(.8) rotate(-8deg)}to{opacity:1;transform:none}}
+@keyframes flipIn{from{transform:rotateY(90deg) scale(.9)}to{transform:rotateY(0) scale(1)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.18) rotate(4deg)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes fall{to{transform:translateY(112vh) rotate(420deg);opacity:.85}}
+.rain{position:fixed;top:-3rem;font-size:1.8rem;pointer-events:none;z-index:50;animation:fall 2.4s ease-in forwards}
+#msg{text-align:center;font-size:1.6rem;min-height:2.2rem;margin:12px 0 8px}
+.go{display:block;margin:0 auto;font-size:1.8rem;padding:8px 26px;border:0;border-radius:12px;background:var(--accent);cursor:pointer;transition:transform .2s}
+.go:hover{transform:rotate(-6deg) scale(1.08)}.go:active{transform:rotate(180deg)}
+h2{margin:26px 0 8px;font-size:1.5rem;text-align:center}
+ol{margin:0;padding:0;list-style:none;border-top:1px solid var(--line)}
+li{display:flex;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line);font-size:1rem}
+li .n{width:2em}li .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+li.me{background:var(--ok);color:#06130d;font-weight:bold}
+@media (prefers-reduced-motion:reduce){.card,.prog i,.lvl,.go{transition:none}.card,.card.in,.card.open,.card.done,.card.fail,.go:active{animation:none !important;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🖥️🃏</h1>
+<div class="bar">
+  <input id="nick" maxlength="20" autocomplete="off" placeholder="👤" aria-label="Tu nombre">
+  <button class="lvl" id="l4" aria-label="Práctica, 4 parejas" title="4 parejas">🐣</button>
+  <button class="lvl on" id="l8" aria-label="Ranking, 8 parejas" title="8 parejas, con ranking">🏆</button>
+</div>
+<div class="hud" aria-live="polite">
+  <span title="Intentos">🎯 <b id="tries">0</b></span>
+  <span title="Parejas">🧩 <b id="pairs">0</b></span>
+  <span title="Tiempo">⏱️ <b id="time">0</b></span>
+</div>
+<div class="prog"><i id="prog"></i></div>
+<div class="grid" id="grid"></div>
+<div id="msg" role="status"></div>
+<button class="go" id="reset" aria-label="Nueva partida">🔄</button>
+<h2>🏆</h2>
+<ol id="rank"><li><span class="t">⏳</span></li></ol>
+</div>
+<script>
+var EMO=["💾","🖥️","⌨️","🖱️","🔌","🐛","📡","🤖"];
+var $=function(id){return document.getElementById(id)};
+var grid=$("grid"),nick=$("nick"),rankEl=$("rank");
+var first=null,lock=false,tries=0,found=0,total=8,startAt=0,timer=null,db=null,myId=null,running=false;
+try{nick.value=localStorage.getItem("mi-nick")||"";}catch(e){}
+nick.addEventListener("input",function(){try{localStorage.setItem("mi-nick",nick.value)}catch(e){}});
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function secs(){return startAt?Math.floor((Date.now()-startAt)/1000):0}
+function hud(){$("tries").textContent=tries;$("pairs").textContent=found+"/"+total;$("time").textContent=secs();$("prog").style.width=(found/total*100)+"%"}
+function setLevel(n){total=n;$("l4").classList.toggle("on",n===4);$("l8").classList.toggle("on",n===8);start()}
+function start(){
+  clearInterval(timer);grid.innerHTML="";first=null;lock=false;tries=0;found=0;startAt=0;running=false;
+  $("msg").textContent="";hud();
+  var sel=shuffle(EMO.slice()).slice(0,total);
+  shuffle(sel.concat(sel)).forEach(function(e,n){
+    var b=document.createElement("button");
+    b.className="card in";b.dataset.e=e;b.style.animationDelay=(n*45)+"ms";
+    b.setAttribute("aria-label","Carta boca abajo");
+    b.innerHTML="<span></span>";b.firstChild.textContent=e;
+    b.addEventListener("animationend",function(ev){if(ev.animationName==="enter"){b.classList.remove("in");b.style.animationDelay=""}});
+    b.addEventListener("click",function(){flip(b)});grid.appendChild(b);
+  });
+}
+function flip(b){
+  if(lock||b.classList.contains("open")||b.classList.contains("done"))return;
+  if(!running){running=true;startAt=Date.now();timer=setInterval(hud,500);}
+  b.classList.add("open");b.setAttribute("aria-label",b.dataset.e);
+  if(!first){first=b;return}
+  tries++;var a=first;first=null;
+  if(a.dataset.e===b.dataset.e){
+    a.classList.remove("open");b.classList.remove("open");a.classList.add("done");b.classList.add("done");
+    found++;hud();if(found===total)finish();
+  }else{
+    lock=true;a.classList.add("fail");b.classList.add("fail");hud();
+    setTimeout(function(){[a,b].forEach(function(x){x.classList.remove("open","fail");x.setAttribute("aria-label","Carta boca abajo")});lock=false},900);
+  }
+}
+function rain(){
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  for(var i=0;i<30;i++){
+    var s=document.createElement("span");s.className="rain";s.textContent=EMO[i%EMO.length];
+    s.style.left=(Math.random()*94)+"vw";s.style.animationDelay=(Math.random()*0.9)+"s";
+    s.style.animationDuration=(1.8+Math.random()*1.4)+"s";document.body.appendChild(s);
+    setTimeout(function(x){x.remove()},4400,s);
+  }
+}
+async function finish(){
+  clearInterval(timer);var t=secs();hud();running=false;
+  $("msg").textContent="🎉 🎯"+tries+" ⏱️"+t;rain();
+  if(total!==8)return;
+  if(!db||!myId){$("msg").textContent+=" 🚫🏆";return}
+  var name=(nick.value||"").trim()||"👤",score=tries*1000+t;
+  try{
+    var ref=db.doc("scores/"+myId),snap=await ref.get();
+    var prev=snap.exists?snap.data().score:null;
+    if(typeof prev!=="number"||score<prev){
+      await ref.set({name:name,best:tries,time:t,score:score,at:Date.now()});
+      $("msg").textContent+=" 🥇";
+    }else{await ref.update({name:name});}
+  }catch(e){$("msg").textContent+=" ⚠️";}
+}
+function render(docs){
+  rankEl.innerHTML="";
+  var rows=docs.filter(function(d){return typeof d.data().score==="number"});
+  if(!rows.length){rankEl.innerHTML="<li><span class='t'>🥇❓</span></li>";return}
+  rows.slice(0,15).forEach(function(d,i){
+    var x=d.data(),li=document.createElement("li");if(d.id===myId)li.className="me";
+    var n=document.createElement("span");n.className="n";n.textContent=["🥇","🥈","🥉"][i]||(i+1);
+    var t=document.createElement("span");t.className="t";t.textContent=x.name||"👤";
+    var s=document.createElement("span");s.textContent="🎯"+x.best+" ⏱️"+x.time;
+    li.appendChild(n);li.appendChild(t);li.appendChild(s);rankEl.appendChild(li);
+  });
+}
+$("reset").addEventListener("click",start);
+$("l4").addEventListener("click",function(){setLevel(4)});
+$("l8").addEventListener("click",function(){setLevel(8)});
+start();
+(async function(){
+  try{
+    var user=await claude.use("user");db=await claude.use("db");
+    if(user)myId=await user.id();
+    if(!db){rankEl.innerHTML="<li><span class='t'>🚫</span></li>";return}
+    db.collection("scores").orderBy("score","asc").limit(50).onSnapshot(function(s){render(s.docs)},function(){
+      rankEl.innerHTML="<li><span class='t'>⚠️</span></li>";});
+  }catch(e){rankEl.innerHTML="<li><span class='t'>🚫</span></li>";}
+})();
+</script>
+</body>
+</html>
